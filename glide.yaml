@@ -1,0 +1,6 @@
+package: github.com/chck/starfy
+import:
+  - package: github.com/google/go-github/github
+  - package: github.com/jessevdk/go-flags
+  - package: golang.org/x/oauth2
+  - package: gopkg.in/yaml.v2
