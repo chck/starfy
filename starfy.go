@@ -29,13 +29,16 @@ func args() (string, string) {
 	return args[0], args[1]
 }
 
-func star(owner string, repo string, token string, errCh chan error) {
+func client(token string) *github.Client {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
+	return github.NewClient(tc)
+}
 
-	client := github.NewClient(tc)
+func star(owner string, repo string, token string, errCh chan error) {
+	client := client(token)
 
 	res, err := client.Activity.Star(owner, repo)
 	log.Println(res)
@@ -49,18 +52,15 @@ func star(owner string, repo string, token string, errCh chan error) {
 
 func main() {
 	owner, repo := args()
-	tokens := config.Load().Github.Tokens
-
 	errCh := make(chan error, 1)
 
 	stars := 0
-	for _, token := range tokens {
+	for _, token := range config.Load().Github.Tokens {
 		go star(owner, repo, token, errCh)
-		err := <-errCh
-		if err == nil {
+		if <-errCh == nil {
 			stars++
 		}
 	}
 
-	fmt.Println(stars)
+	fmt.Printf("Growing completed: +%v\n", stars)
 }
